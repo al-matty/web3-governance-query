@@ -7,4 +7,5 @@ it saves proposals that have been voted on by a wallet already in a json file lo
 
 ## License
 
-This project is licensed under the [MIT license](https://github.com/al-matty/telegram-merch-bot/blob/main/LICENSE) - see the [LICENSE](https://github.com/al-matty/telegram-merch-bot/blob/main/LICENSE) file for details.
+This project is licensed under the [MIT license](https://github.com/al-matty/telegram-merch-bot/blob/main/LICENSE) - see the [LICENSE](https://github.com/al-matty/snapshot-voter/blob/main/LICENSE) file for details.
+
