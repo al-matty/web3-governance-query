@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Bot framework taken from Andrés Ignacio Torres <andresitorresm@gmail.com>,
-all other files by Al Matty <almatty@gmail.com>.
+Written by Al Matty <almatty@gmail.com>
 """
 import time, os
 import random
