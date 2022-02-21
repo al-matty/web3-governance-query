@@ -1,4 +1,5 @@
 *.sh
+*.json
 *orig*.*
 *.pyc
 .ipynb_checkpoints/imageManTestArea-checkpoint.ipynb
