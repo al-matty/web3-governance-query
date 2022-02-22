@@ -1,5 +1,6 @@
 *.sh
 *.json
+wallets.txt
 *orig*.*
 *.pyc
 .ipynb_checkpoints/imageManTestArea-checkpoint.ipynb

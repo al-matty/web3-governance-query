@@ -144,3 +144,43 @@ def get_not_yet_voted(wallet, spaces):
     to_vote = remove_voted_on(wallet, get_active_proposals(spaces))
     cond_log(f'Found the following proposals for {wallet}:\n {to_vote}')
     return to_vote
+
+
+def vote_yes(wallet, space)
+    '''
+    Logs into a snapshot space with wallet,
+    votes for whichever button contains a "Yes".
+    '''
+    # connect wallet with snapshot.page
+
+    # return set of joined spaces with active proposals to vote on
+    active = get_not_yet_voted(wallet)
+
+    # for each active space: vote yes
+
+    # disconnect wallet from snapshot.page
+    pass
+
+
+def vote_all_with_wallet(wallet):
+    '''
+    Iterates through spaces this wallet has joined,
+    checks which have active proposals,
+    votes for whichever button contains a "Yes" on those.
+    '''
+    active = get_active_spaces(wallet)
+
+    # Pass if no proposals currently for this wallet's joined spaces
+    if active == {}:
+        cond_log(f'No active proposals atm for wallet {wallet}!')
+        return None
+
+    else:
+        for space in active:
+            vote_yes(wallet, space)
+
+
+
+
+
+# at the end: Write updated json file back to disk!
