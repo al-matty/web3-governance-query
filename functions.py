@@ -7,6 +7,12 @@ All functions are stored here
 import os, json, requests
 
 
+def load_wallets(wallet_path):
+    with open(wallet_path, 'r') as f:
+        wallets = [l.strip() for l in f.readlines()]
+    return set(wallets)
+
+
 def read_from_json(wallets, filepath):
     '''
     Returns dict of shape {wallet1: [prop_id_1, prop_id_2,...], wallet2: ...}
@@ -21,7 +27,6 @@ def read_from_json(wallets, filepath):
         d = {w: [] for w in wallets}
         cond_log(f'No local wallet history found. Created this instead:\n {d}')
         return d
-
 
 
 def write_to_json(_dict, path):
