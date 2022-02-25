@@ -4,13 +4,17 @@
 All functions are stored here
 """
 
-import os, json, requests
+import os, json, requests, keyring
+from web3.auto.infura import w3
 
 
 def load_wallets(wallet_path):
+    '''
+    Returns a set of wallets read from a text file.
+    '''
     with open(wallet_path, 'r') as f:
-        wallets = [l.strip() for l in f.readlines()]
-    return set(wallets)
+        wallets = {l.strip() for l in f.readlines()}
+    return wallets
 
 
 def read_from_json(wallets, filepath):
@@ -151,7 +155,33 @@ def get_not_yet_voted(wallet, spaces):
     return to_vote
 
 
-def vote_yes(wallet, space)
+def get_choices(proposal_id):
+    '''
+    Returns list of choices up for vote for a specific proposal.
+    '''
+    query_proposal = '''query Proposal {
+        proposal(id:"'''+proposal_id+'''") {
+            id
+            title
+            body
+            choices
+            start
+            end
+            snapshot
+            state
+            author
+            space {
+              id
+              name
+            }
+          }
+        }'''
+    d = json_from_query(query_proposal)
+    return d['data']['proposal']['choices']
+
+
+
+def vote_yes(wallet, space):
     '''
     Logs into a snapshot space with wallet,
     votes for whichever button contains a "Yes".
@@ -189,3 +219,4 @@ def vote_all_with_wallet(wallet):
 
 
 # at the end: Write updated json file back to disk!
+    
