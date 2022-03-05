@@ -10,7 +10,7 @@ wallets =         # load from txt file (1 wallet per row)
 logging = True    # toggles debug messages (False = no messages at all)
 
 
-# Load dictionary of proposals to ignore from disk if it exists
+# load dictionary of proposals to ignore from disk if it exists
 already_voted_path = './already_voted.json'
 ALREADY_VOTED_DICT = read_from_json(wallets, already_voted_path)
 
