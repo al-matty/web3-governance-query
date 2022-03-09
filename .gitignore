@@ -3,6 +3,6 @@
 wallets.txt
 *orig*.*
 *.pyc
-.ipynb_checkpoints/imageManTestArea-checkpoint.ipynb
+*.ipynb
 .DS_Store
 __pycache__/

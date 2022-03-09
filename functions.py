@@ -4,8 +4,10 @@
 All functions are stored here
 """
 
-import os, json, requests, keyring
-from web3.auto.infura import w3
+import os, json, requests, keyring, js2py
+#from web3.auto.infura import w3
+
+#eth = w3.eth
 
 
 def load_wallets(wallet_path):
@@ -155,6 +157,22 @@ def get_not_yet_voted(wallet, spaces):
     return to_vote
 
 
+def get_pk(encr_pk_path, keyr_service_name, keyr_account):
+
+    decr_pw = keyring.get_password(keyr_service_name, keyr_account)
+
+    with open(encr_pk_path) as keyfile:
+        enc_k = keyfile.read()
+        pk = eth.account.decrypt(enc_k, decr_pw)
+
+    decr_pw = None
+    return pk
+
+
+def connect_web3(url, pk):
+    pass
+
+
 def get_choices(proposal_id):
     '''
     Returns list of choices up for vote for a specific proposal.
@@ -178,6 +196,24 @@ def get_choices(proposal_id):
         }'''
     d = json_from_query(query_proposal)
     return d['data']['proposal']['choices']
+
+
+
+def export_to_vote(wallets, path):
+    '''
+    Wrapper for core functionality. Queries graphql.
+    Saves a json file containing all active proposals per wallet that
+    the wallet has not yet voted on.
+    '''
+    d = {}
+
+    # query graphql for active proposals per wallet
+    for wallet in wallets:
+        spaces = get_joined_spaces(wallet)
+        d[wallet] = list(get_not_yet_voted(wallet, spaces))
+
+    write_to_json(d, path)
+
 
 
 
@@ -217,6 +253,4 @@ def vote_all_with_wallet(wallet):
 
 
 
-
 # at the end: Write updated json file back to disk!
-    
