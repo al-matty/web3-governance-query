@@ -1,5 +1,6 @@
 *.sh
 *.json
+*.csv
 wallets.txt
 *orig*.*
 *.pyc

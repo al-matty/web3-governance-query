@@ -4,7 +4,7 @@
 All functions are stored here
 """
 
-import os, json, requests, keyring, js2py
+import os, json, requests, keyring, csv
 #from web3.auto.infura import w3
 
 #eth = w3.eth
@@ -43,6 +43,16 @@ def write_to_json(_dict, path):
     with open(path, 'w') as jfile:
         json_object = json.dump(_dict, jfile, indent=4)
         cond_log(f'Saved wallet history to file:\n {_dict}')
+
+
+def dict_to_csv(_dict, outpath):
+    '''
+    Writes dictionary to a csv file.
+    '''
+    with open(outpath, 'w') as f:
+        w = csv.writer(f)
+        for k, v in _dict.items():
+            w.writerow([k, v])
 
 
 def cond_log(msg):
@@ -213,6 +223,64 @@ def export_to_vote(wallets, path):
         d[wallet] = list(get_not_yet_voted(wallet, spaces))
 
     write_to_json(d, path)
+
+
+
+def get_spaces_from_proposals(proposals_list, id_memo={}):
+    '''
+    Takes list of proposal ids, returns list of unique ids of their respective spaces.
+    A dictionary of shape {proposal_str: id_str, ... } can be provided for
+    memoization, to avoid querying for the same proposal twice (i.e. with multiple wallets).
+    '''
+    # helper function, queries graphql to get space id from prop id
+    def id_from_prop(proposal_id):
+        query_proposal = '''query Proposal {
+            proposal(id:"'''+proposal_id+'''") {
+                space {
+                  name
+                }
+              }
+            }'''
+        d = json_from_query(query_proposal)
+        return d['data']['proposal']['space']['name']
+
+    ids = set()
+
+    for prop in proposals_list:
+        if prop in id_memo:
+            ids.add(id_memo[prop])
+        else:
+            space_id = id_from_prop(prop)
+            ids.add(space_id)
+            id_memo[prop] = space_id
+
+    # returns tuple (spaces list, updated memo dictionary)
+    return list(ids), id_memo
+
+
+def export_readable_csv(json_path, outpath='./to_vote.csv'):
+    '''
+    Takes the wallet: proposals dictionary, replaces all proposals
+    with the name of their respective spaces and saves as csv file
+    '''
+    cond_log('Resolving space names for csv file...')
+
+    # read dict from json
+    with open(json_path, 'r') as jfile:
+        in_dict = json.load(jfile)
+    out_dict = {}
+    memo_dict = {}
+
+    # query spaces ids from graphql
+    for wallet, prop_list in in_dict.items():
+
+        spaces, memo_dict = get_spaces_from_proposals(prop_list, memo_dict)
+        out_dict[wallet] = spaces
+
+    # save as csv
+    dict_to_csv(out_dict, outpath)
+    cond_log(f'Created {outpath}.')
+
 
 
 
