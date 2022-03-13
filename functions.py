@@ -47,7 +47,7 @@ def write_to_json(_dict, path):
 
 def dict_to_csv(_dict, outpath):
     '''
-    Writes dictionary to a csv file.
+    Writes a dictionary to a csv file.
     '''
     with open(outpath, 'w') as f:
         w = csv.writer(f)
