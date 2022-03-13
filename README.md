@@ -18,13 +18,13 @@ If you haven't joined any spaces with these wallets on snapshot.page yet,
 with each wallet, join each snapshot space that you want updates on manually.
 This needs to be done one time only.
 Run the script.
-A json and csv file will be created in your project folder.
+A json and a csv file will be created in your project folder:
 
 csv example:
-![Preview](https://github.com/al-matty/TelegramMerchBot/blob/main/currentMerch.png)
+![Preview](https://github.com/al-matty/snapshot-voter/blob/main/csv_example.png)
 
 json example:
-![Preview](https://github.com/al-matty/TelegramMerchBot/blob/main/currentMerch.png)
+![Preview](https://github.com/al-matty/snapshot-voter/blob/main/json_example.png)
 
 ## License
 
