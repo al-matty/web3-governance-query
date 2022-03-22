@@ -31,6 +31,7 @@ json example:
 
 ![Preview](https://github.com/al-matty/snapshot-voter/blob/main/json_example.png)
 
+
 ## License
 
 This project is licensed under the [MIT license](https://github.com/al-matty/telegram-merch-bot/blob/main/LICENSE) - see the [LICENSE](https://github.com/al-matty/snapshot-voter/blob/main/LICENSE) file for details.

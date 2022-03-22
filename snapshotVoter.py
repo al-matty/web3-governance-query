@@ -4,34 +4,31 @@
 Written by Al Matty <almatty@gmail.com>
 """
 
+from functions import *
 
-# set of wallets which will be used for voting
-wallets =         # load from txt file (1 wallet per row)
-logging = True    # toggles debug messages (False = no messages at all)
 
+logging = True    # toggles verbosity (False = no messages at all)
+
+# file paths
+wallet_path = './wallets.txt'                # text file, 1 wallet per row
+already_voted_path = './already_voted.json'  # path to voting history (not strictly necessary)
+export_json_path = './to_vote.json'
+encr_pk_path = '../encrPK.json'
+
+
+
+# load set of wallets used for voting
+wallets = load_wallets(wallet_path)    # creates set of wallets
 
 # load dictionary of proposals to ignore from disk if it exists
-already_voted_path = './already_voted.json'
 ALREADY_VOTED_DICT = read_from_json(wallets, already_voted_path)
 
 
 
 
 
-
-
-def main(wallets):
-    '''
-    Wrapper for vote_all_with_wallet which cycles through
-    all wallets contained in wallets set.
-    '''
-    global ALREADY_VOTED_DICT
-
-    for wallet in wallets:
-        vote_all_with_wallet(wallet)
-        # After each successful vote: Add entry (wallet: prop_id) to dict
-
-    cond_log(f'All went well! No errors whatsoever.')
+export_to_vote(wallets, export_json_path)
+cond_log(f'All went well! No errors whatsoever.')
 
 
 
@@ -40,4 +37,4 @@ def main(wallets):
 
 
 # At the very end: Save updated dictionary of proposals to ignore to disk
-write_to_json(ALREADY_VOTED_DICT, already_voted_path)
+#write_to_json(ALREADY_VOTED_DICT, already_voted_path)
