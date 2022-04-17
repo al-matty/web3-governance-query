@@ -28,13 +28,13 @@ Run the script.
 
 A json and a csv file will be created in your project folder:
 
-csv example:
+### csv example:
 
 
 ![Preview](https://github.com/al-matty/snapshot-voter/blob/main/csv_example.png)
 
 
-json example:
+### json example:
 
 
 ![Preview](https://github.com/al-matty/snapshot-voter/blob/main/json_example.png)
