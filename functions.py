@@ -9,6 +9,8 @@ import os, json, requests, keyring, csv
 
 #eth = w3.eth
 
+print('KAZAAAAA!')
+logging = None
 
 def load_wallets(wallet_path):
     '''

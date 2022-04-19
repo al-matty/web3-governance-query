@@ -4,10 +4,14 @@
 Written by Al Matty <almatty@gmail.com>
 """
 
+logging = True    # toggles verbosity (False = no messages at all)
+
+from _globals import * #ALREADY_VOTED_DICT
+ALREADY_VOTED_DICT = read_from_json(
+        load_wallets('./wallets.txt'),
+        './already_voted_on.json')
 from functions import *
 
-
-logging = True    # toggles verbosity (False = no messages at all)
 
 # file paths
 wallet_path = './wallets.txt'                # text file, 1 wallet per row
@@ -19,9 +23,6 @@ encr_pk_path = '../encrPK.json'
 
 # load set of wallets used for voting
 wallets = load_wallets(wallet_path)    # creates set of wallets
-
-# load dictionary of proposals to ignore from disk if it exists
-ALREADY_VOTED_DICT = read_from_json(wallets, already_voted_path)
 
 
 
