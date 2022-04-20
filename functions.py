@@ -9,8 +9,10 @@ import os, json, requests, keyring, csv
 
 #eth = w3.eth
 
-print('KAZAAAAA!')
-logging = None
+
+logging = True        # toggles verbosity (False = no messages at all)
+
+
 
 def load_wallets(wallet_path):
     '''
@@ -37,6 +39,16 @@ def read_from_json(wallets, filepath):
         return d
 
 
+def set_already_voted_dict(already_voted_path, wallet_path):
+    '''
+    Reads json containing voting history and returns a dict (past votes
+    per wallet). Creates dict with wallets as keys if no json file found.
+    '''
+    wallets = load_wallets(wallet_path)
+    d = read_from_json(wallets, already_voted_path)
+    return d
+
+
 def write_to_json(_dict, path):
     '''
     Writes dict of shape {wallet1: {prop_id_1, prop_id_2,...}, wallet2: ...}
@@ -44,7 +56,7 @@ def write_to_json(_dict, path):
     '''
     with open(path, 'w') as jfile:
         json_object = json.dump(_dict, jfile, indent=4)
-        cond_log(f'Saved wallet history to file:\n {_dict}')
+        cond_log(f'\nFound that these proposals are up for voting:\n {_dict}')
 
 
 def dict_to_csv(_dict, outpath):
@@ -140,31 +152,33 @@ def get_active_proposals(spaces_set):
     # Create set of all active proposal id's of those spaces
     active_props = {x['id'] for x in d['data']['proposals']}
     active_spaces = {x['space']['id'] for x in d['data']['proposals']}
-    cond_log(f'Found {len(active_props)} active proposal(s) for: {active_spaces}.')
+    cond_log(f'\nFound {len(active_props)} active proposal(s) for: {active_spaces}.')
 
     return active_props
 
 
-def remove_voted_on(wallet, proposals):
+def remove_voted_on(wallet, proposals, already_voted_dict):
     '''
     Takes a set of proposals. Returns subset of those proposals that
     the wallet has not yet voted on.
     '''
-    global ALREADY_VOTED_DICT
 
-    already_voted = set(ALREADY_VOTED_DICT[wallet])
+    already_voted = set(already_voted_dict[wallet])
     removed = set(proposals) - already_voted
 
     return removed
 
 
-def get_not_yet_voted(wallet, spaces):
+def get_not_yet_voted(wallet, spaces, already_voted_dict):
     '''
     Takes a set of snapshot spaces and returns the set of active proposals
     that this wallet has not yet voted on.
     '''
     # gets active proposals per wallet and removes those already voted on
-    to_vote = remove_voted_on(wallet, get_active_proposals(spaces))
+    to_vote = remove_voted_on(wallet,
+                              get_active_proposals(spaces),
+                              already_voted_dict
+                              )
     cond_log(f'Found the following proposals for {wallet}:\n {to_vote}')
     return to_vote
 
@@ -211,20 +225,27 @@ def get_choices(proposal_id):
 
 
 
-def export_to_vote(wallets, path):
+def export_to_vote(wallet_path, already_voted_path, export_path):
     '''
     Wrapper for core functionality. Queries graphql.
     Saves a json file containing all active proposals per wallet that
     the wallet has not yet voted on.
     '''
+    
+    wallets = load_wallets(wallet_path)
+    already_voted_dict = set_already_voted_dict(
+            already_voted_path, wallet_path
+            )
+    
     d = {}
 
     # query graphql for active proposals per wallet
     for wallet in wallets:
         spaces = get_joined_spaces(wallet)
-        d[wallet] = list(get_not_yet_voted(wallet, spaces))
+        d[wallet] = list(get_not_yet_voted(wallet, spaces, already_voted_dict))
 
-    write_to_json(d, path)
+    write_to_json(d, export_path)
+    cond_log(f'\n...updated {export_path.strip("./")}')
 
 
 
@@ -265,7 +286,7 @@ def export_readable_csv(json_path, outpath='./to_vote.csv'):
     Takes the wallet: proposals dictionary, replaces all proposals
     with the name of their respective spaces and saves as csv file
     '''
-    cond_log('Resolving space names for csv file...')
+    cond_log('...resolving space names for csv file...')
 
     # read dict from json
     with open(json_path, 'r') as jfile:
@@ -281,7 +302,14 @@ def export_readable_csv(json_path, outpath='./to_vote.csv'):
 
     # save as csv
     dict_to_csv(out_dict, outpath)
-    cond_log(f'Created {outpath}.')
+    cond_log(f'...updated {outpath.strip("./")}.')
+    
+    # print list of spaces with active proposals
+    print('\nFound active proposals for these spaces in total:\n')
+    unique_spaces = set(memo_dict.values())
+    [print(x) for x in unique_spaces]
+
+
 
 
 
