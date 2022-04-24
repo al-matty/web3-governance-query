@@ -6,13 +6,12 @@ All functions are stored here
 
 import os, json, requests, keyring, csv
 from time import sleep
-#from web3.auto.infura import w3
-
-#eth = w3.eth
 
 
 logging = True        # toggles verbosity (False = no messages at all)
-
+IGNORE_LIST = [       # proposals to forever ignore
+        'Qmdpr5nfFdHVsMQskUaEX8TqT54PrAUvFFvuwft7zc9pHU'
+        ]
 
 
 def load_wallets(wallet_path):
@@ -259,12 +258,16 @@ def get_not_yet_voted(wallet, spaces, already_voted_dict, silent=False):
     Takes a set of snapshot spaces and returns the set of active proposals
     that this wallet has not yet voted on.
     '''
+    global IGNORE_LIST
+    
     # gets active proposals per wallet and removes those already voted on
     to_vote = remove_voted_on(wallet,
                               get_active_proposals(spaces, silent=silent),
                               already_voted_dict
                               )
-
+    # subtract proposals from ignore list
+    to_vote = to_vote - set(IGNORE_LIST)
+    
     if not silent and to_vote != set():
         cond_log(f'\n===> Found new proposals for {wallet}:\n')
         [cond_log(x) for x in to_vote]
@@ -321,7 +324,7 @@ def export_to_vote(wallet_path, already_voted_path, export_path, export=True):
     Saves a json file containing all active proposals per wallet that
     the wallet has not yet voted on.
     '''
-    print('Executing export_to_vote()...')
+    cond_log('Loading wallets and voting history...')
     wallets = load_wallets(wallet_path)
     already_voted_dict = set_already_voted_dict(
             already_voted_path, wallet_path
@@ -330,6 +333,7 @@ def export_to_vote(wallet_path, already_voted_path, export_path, export=True):
     d = {}
 
     # query graphql for active proposals per wallet
+    cond_log('Querying graphql...')
     for wallet in wallets:
         spaces = get_joined_spaces(wallet)
         d[wallet] = list(get_not_yet_voted(wallet, spaces, already_voted_dict))
@@ -397,14 +401,25 @@ def export_readable_csv(json_path, outpath='./to_vote.csv'):
     cond_log(f'...updated {outpath.strip("./")}.')
     
     # print list of spaces with active proposals
-    print('\nFound active proposals for these spaces in total:\n')
     unique_spaces = set(memo_dict.values())
-    [print(x) for x in unique_spaces]
+    if unique_spaces == set():
+        print('\nNo new proposals to vote on today!\n')
+    else:
+        print('\nFound active proposals for these spaces in total:\n')
+        [print(x) for x in unique_spaces]
 
 
 
 
 
+
+
+
+#########################################################################
+#########################################################################
+        
+#from web3.auto.infura import w3
+#eth = w3.eth
 
 
 def vote_yes(wallet, space):
@@ -439,9 +454,4 @@ def vote_all_with_wallet(wallet):
     else:
         for space in active:
             vote_yes(wallet, space)
-
-
-
-
-# at the end: Write updated json file back to disk!
 
