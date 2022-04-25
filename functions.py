@@ -40,7 +40,6 @@ def create_voted_on_json(wallet_path, already_voted_path):
                 wallet, spaces, dummy_d, silent=True)
                 )
 
-    
     # collect proposals already voted on in already_voted dict
     already_voted_d = {}
     
@@ -128,7 +127,7 @@ def already_voted(wallet, proposal):
     
     query = '''query Votes {
         votes (
-            first: 1000
+            first: 3000
             skip: 0
             where: {
               proposal: "'''+str(proposal)+'''"
@@ -408,12 +407,73 @@ def export_readable_csv(json_path, outpath='./to_vote.csv'):
         print('\nFound active proposals for these spaces in total:\n')
         [print(x) for x in unique_spaces]
 
+        
+def get_choices(proposal_id):
+    '''
+    Returns list of choices up for vote for a specific proposal.
+    '''
+    query_proposal = '''query Proposal {
+        proposal(id:"'''+proposal_id+'''") {
+            id
+            title
+            body
+            choices
+            start
+            end
+            snapshot
+            state
+            author
+            space {
+              id
+              name
+            }
+          }
+        }'''
+    d = json_from_query(query_proposal)
+    return d['data']['proposal']['choices']
+        
+
+def get_popular_choice(proposal):
+    '''
+    Queries graphql and returns the most popular choice at this moment.
+    '''
+    # get possible choices for proposal
+    possible_choices = get_choices(prop2)
+
+    # transfer choices to dictionary int keys
+    choices_d = {}
+    for i in range(len(possible_choices)):
+        choices_d[i+1] = 0
+    
+    # query graphql for the most recent 1000 votes and their choice
+    query = '''query Votes {
+        votes (
+            first: 1000
+            skip: 0
+            where: {
+              proposal: "'''+str(prop3)+'''"
+            }
+        orderBy: "created",
+        orderDirection: desc
+        ) {
+        choice
+        }
+        }'''
+    votes_list = json_from_query(query)['data']['votes']
+    
+    # sum up count of each choice
+    for vote in votes_list:
+        choices_d[vote['choice']] += 1
+
+    # determine most popular choice
+    most_popular = max(choices_d.items(), key=lambda x: x[1])[0]
+    return most_popular
 
 
-
-
-
-
+    
+    
+    
+    
 
 #########################################################################
 #########################################################################
@@ -454,4 +514,5 @@ def vote_all_with_wallet(wallet):
     else:
         for space in active:
             vote_yes(wallet, space)
+
 
