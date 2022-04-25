@@ -436,9 +436,10 @@ def get_choices(proposal_id):
 def get_popular_choice(proposal):
     '''
     Queries graphql and returns the most popular choice at this moment.
+    If proposal has less than 100 votes, returns None.
     '''
     # get possible choices for proposal
-    possible_choices = get_choices(prop2)
+    possible_choices = get_choices(proposal)
 
     # transfer choices to dictionary int keys
     choices_d = {}
@@ -451,7 +452,7 @@ def get_popular_choice(proposal):
             first: 1000
             skip: 0
             where: {
-              proposal: "'''+str(prop3)+'''"
+              proposal: "'''+str(proposal)+'''"
             }
         orderBy: "created",
         orderDirection: desc
@@ -460,6 +461,10 @@ def get_popular_choice(proposal):
         }
         }'''
     votes_list = json_from_query(query)['data']['votes']
+    
+    # return None if less than 100 votes so far
+    if len(votes_list) < 100:
+        return None
     
     # sum up count of each choice
     for vote in votes_list:
@@ -470,7 +475,34 @@ def get_popular_choice(proposal):
     return most_popular
 
 
+def create_choices_json(export_json_path, choices_json_path):
+    '''
+    Takes proposals up for voting from json file and saves another json
+    file with the most popular choice so far by other snapshot voters
+    for each proposal. Will be inferred from a sample of the last 1000 voters.
+    If less than 100 voters so far for a proposal, the choice will be None.
+    '''
+    to_vote_d = read_from_json(export_json_path)
     
+    # abort if no active proposals to vote on
+    if to_vote_d == {}:
+        return
+    
+    # collect set of unique proposals
+    props = set()
+    for wallet, prop_list in to_vote_d.items():
+        for prop in prop_list:
+            props.add(prop)
+    
+    # create dict of proposals and their most popular choice so far
+    out_d = {}
+    for prop in props:
+        out_d[prop] = get_popular_choice(prop)
+    
+    # save to json
+    write_to_json(out_d, choices_json_path)
+    cond_log('\nThese are the popular choices for the current active proposals:\n')
+    cond_log(out_d)
     
     
     
