@@ -42,17 +42,17 @@ def create_voted_on_json(wallet_path, already_voted_path):
 
     # collect proposals already voted on in already_voted dict
     already_voted_d = {}
-    
+
     for wallet, props in active_props.items():
         props_per_wallet = []
         for prop in props:
             if already_voted(wallet, prop):
                 props_per_wallet.append(prop)
         already_voted_d[wallet] = props_per_wallet
-    
+
     # export as json file
     write_to_json(already_voted_d, already_voted_path)
-    
+
     cond_log(f'\nCreated a new {already_voted_path.strip("./")}.')
 
 
@@ -124,7 +124,7 @@ def already_voted(wallet, proposal):
     Queries snapshot, returns True if wallet has voted on proposal already,
     returns False if not.
     '''
-    
+
     query = '''query Votes {
         votes (
             first: 3000
@@ -148,17 +148,17 @@ def already_voted(wallet, proposal):
         }
         }
     }'''
-    
+
     # query graphql
     already_voted = json_from_query(query)
-    
-    # if graphql response is empty list, wallet is not among past voters 
+
+    # if graphql response is empty list, wallet is not among past voters
     if already_voted['data']['votes'] != []:
         return True
     else:
         return False
 
-    
+
 def get_joined_spaces(wallet):
     '''Returns the set of snapshot spaces this wallet is following'''
 
@@ -239,7 +239,7 @@ def remove_voted_on(wallet, proposals, already_voted_dict):
     Takes a set of proposals. Returns subset of those proposals that
     the wallet has not yet voted on.
     '''
-    
+
     if already_voted_dict == None:
         removed = proposals
     else:
@@ -258,7 +258,7 @@ def get_not_yet_voted(wallet, spaces, already_voted_dict, silent=False):
     that this wallet has not yet voted on.
     '''
     global IGNORE_LIST
-    
+
     # gets active proposals per wallet and removes those already voted on
     to_vote = remove_voted_on(wallet,
                               get_active_proposals(spaces, silent=silent),
@@ -266,12 +266,12 @@ def get_not_yet_voted(wallet, spaces, already_voted_dict, silent=False):
                               )
     # subtract proposals from ignore list
     to_vote = to_vote - set(IGNORE_LIST)
-    
+
     if not silent and to_vote != set():
         cond_log(f'\n===> Found new proposals for {wallet}:\n')
         [cond_log(x) for x in to_vote]
         cond_log('')
-        
+
     return to_vote
 
 
@@ -328,7 +328,7 @@ def export_to_vote(wallet_path, already_voted_path, export_path, export=True):
     already_voted_dict = set_already_voted_dict(
             already_voted_path, wallet_path
             )
-    
+
     d = {}
 
     # query graphql for active proposals per wallet
@@ -336,11 +336,11 @@ def export_to_vote(wallet_path, already_voted_path, export_path, export=True):
     for wallet in wallets:
         spaces = get_joined_spaces(wallet)
         d[wallet] = list(get_not_yet_voted(wallet, spaces, already_voted_dict))
-    
+
     if export:
         write_to_json(d, export_path)
         cond_log(f'\n...updated {export_path.strip("./")}')
-    
+
     return d
 
 
@@ -398,7 +398,7 @@ def export_readable_csv(json_path, outpath='./to_vote.csv'):
     # save as csv
     dict_to_csv(out_dict, outpath)
     cond_log(f'...updated {outpath.strip("./")}.')
-    
+
     # print list of spaces with active proposals
     unique_spaces = set(memo_dict.values())
     if unique_spaces == set():
@@ -407,7 +407,7 @@ def export_readable_csv(json_path, outpath='./to_vote.csv'):
         print('\nFound active proposals for these spaces in total:\n')
         [print(x) for x in unique_spaces]
 
-        
+
 def get_choices(proposal_id):
     '''
     Returns list of choices up for vote for a specific proposal.
@@ -431,7 +431,7 @@ def get_choices(proposal_id):
         }'''
     d = json_from_query(query_proposal)
     return d['data']['proposal']['choices']
-        
+
 
 def get_popular_choice(proposal):
     '''
@@ -445,7 +445,7 @@ def get_popular_choice(proposal):
     choices_d = {}
     for i in range(len(possible_choices)):
         choices_d[i+1] = 0
-    
+
     # query graphql for the most recent 1000 votes and their choice
     query = '''query Votes {
         votes (
@@ -461,11 +461,11 @@ def get_popular_choice(proposal):
         }
         }'''
     votes_list = json_from_query(query)['data']['votes']
-    
+
     # return None if less than 100 votes so far
     if len(votes_list) < 100:
         return None
-    
+
     # sum up count of each choice
     for vote in votes_list:
         choices_d[vote['choice']] += 1
@@ -482,34 +482,35 @@ def create_choices_json(export_json_path, choices_json_path):
     for each proposal. Will be inferred from a sample of the last 1000 voters.
     If less than 100 voters so far for a proposal, the choice will be None.
     '''
+    cond_log('\nQuerying to get the most popular choice per proposal...\n')
     to_vote_d = read_from_json(export_json_path)
-    
+
     # abort if no active proposals to vote on
     if to_vote_d == {}:
         return
-    
+
     # collect set of unique proposals
     props = set()
     for wallet, prop_list in to_vote_d.items():
         for prop in prop_list:
             props.add(prop)
-    
+
     # create dict of proposals and their most popular choice so far
     out_d = {}
     for prop in props:
         out_d[prop] = get_popular_choice(prop)
-    
+
     # save to json
     write_to_json(out_d, choices_json_path)
     cond_log('\nThese are the popular choices for the current active proposals:\n')
     cond_log(out_d)
-    
-    
-    
+
+
+
 
 #########################################################################
 #########################################################################
-        
+
 #from web3.auto.infura import w3
 #eth = w3.eth
 
@@ -546,5 +547,3 @@ def vote_all_with_wallet(wallet):
     else:
         for space in active:
             vote_yes(wallet, space)
-
-
