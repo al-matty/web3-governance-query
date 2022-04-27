@@ -433,21 +433,35 @@ def get_choices(proposal_id):
     return d['data']['proposal']['choices']
 
 
-def get_popular_choice(proposal):
+def quadratic_voting_get_most_popular(single_vote_dict, all_poss_choices):
     '''
-    Queries graphql and returns the most popular choice at this moment.
-    If proposal has less than 100 votes, returns None.
+    Converts a dict with voting weights in a quadratic vote to a
+    single choice integer (the choice voted highest).
+    Intended to be an quick approximation of a quadratic vote.
+    Returns None  if all possible choices voted equal.
     '''
-    # get possible choices for proposal
-    possible_choices = get_choices(proposal)
+    votes_d = single_vote_dict['choice']
+    votes_set = {v for v in votes_d.values()}
 
-    # transfer choices to dictionary int keys
-    choices_d = {}
-    for i in range(len(possible_choices)):
-        choices_d[i+1] = 0
+    # return None if equal vote for all choices
+    if len(votes_set) == 1 and len(votes_d) == len(all_poss_choices):
+        return None
+
+    # else return key of highest value
+    else:
+        return int(max(votes_d.items(), key=lambda x: x[1])[0])
+
+
+
+def get_prop_data(proposal):
+    '''
+    Queries graphql and returns the most popular choice at this moment
+    among other metadata as a nested dict with proposal id as key.
+    If proposal has less than 100 votes, popular choice is None.
+    '''
 
     # query graphql for the most recent 1000 votes and their choice
-    query = '''query Votes {
+    query_votes = '''query Votes {
         votes (
             first: 1000
             skip: 0
@@ -460,19 +474,81 @@ def get_popular_choice(proposal):
         choice
         }
         }'''
-    votes_list = json_from_query(query)['data']['votes']
+    votes_list = json_from_query(query_votes)['data']['votes']
 
-    # return None if less than 100 votes so far
-    if len(votes_list) < 100:
-        return None
+    # query graphql for some proposal metadata
+    query_proposal = '''query Proposal {
+        proposal(id:"'''+proposal+'''") {
+            id
+            title
+            body
+            choices
+            start
+            end
+            snapshot
+            state
+            author
+            space {
+              id
+              name
+            }
+          }
+        }'''
+    meta_data = json_from_query(query_proposal)['data']
 
-    # sum up count of each choice
-    for vote in votes_list:
-        choices_d[vote['choice']] += 1
+    title = meta_data['proposal']['title']
+    ts_created = meta_data['proposal']['start']
+    vote_count = len(votes_list)
+    possible_choices = meta_data['proposal']['choices']
 
-    # determine most popular choice
-    most_popular = max(choices_d.items(), key=lambda x: x[1])[0]
-    return most_popular
+    # transfer choices to int dictionary keys
+    choices_d = {}
+    for i in range(len(possible_choices)):
+        choices_d[i+1] = 0
+
+
+    # case: Less than 50 votes in total: Return None
+    if vote_count < 50:
+        most_popular = None
+        print(f'Very few votes so far ({vote_count}) for this proposal: ', title)
+
+    # case: More than 100 votes: Count them to get most popular choice so far
+    else:
+
+        # sum up count of each choice and determine most common
+        for vote in votes_list:
+
+            # Case: Someone voted for an unavailable choice
+            if vote['choice'] not in choices_d:
+                outsider = vote['choice']
+                cond_log(f'Oops, caught an outsider. Choice: {outsider}')
+                continue
+
+            # case: Quadratic voting
+            if type(vote['choice']) == dict:
+                highest_v = quadratic_voting_get_most_popular(vote['choice'], choices_d)
+                if highest_v == None:
+                    continue
+                else:
+                    choices_d[highest_v] += 1
+
+            # case: Single choice voting
+            else:
+                choices_d[vote['choice']] += 1
+
+        # Determine most voted choice so far
+        most_popular = max(choices_d.items(), key=lambda x: x[1])[0]
+
+    out_d = {
+        proposal: {
+            'title': title,
+            'pop_choice': most_popular,
+            'ts_created': ts_created,
+            'total_votes': vote_count
+        }
+    }
+
+    return out_d
 
 
 def create_choices_json(export_json_path, choices_json_path):
@@ -482,14 +558,13 @@ def create_choices_json(export_json_path, choices_json_path):
     for each proposal. Will be inferred from a sample of the last 1000 voters.
     If less than 100 voters so far for a proposal, the choice will be None.
     '''
-    cond_log('\nQuerying to get the most popular choice per proposal...\n')
     to_vote_d = read_from_json(export_json_path)
 
     # abort if no active proposals to vote on
     if to_vote_d == {}:
         return
 
-    # collect set of unique proposals
+    # populate set of unique proposals
     props = set()
     for wallet, prop_list in to_vote_d.items():
         for prop in prop_list:
@@ -498,13 +573,11 @@ def create_choices_json(export_json_path, choices_json_path):
     # create dict of proposals and their most popular choice so far
     out_d = {}
     for prop in props:
-        out_d[prop] = get_popular_choice(prop)
+        out_d[prop] = get_prop_data(prop)[prop]
 
     # save to json
     write_to_json(out_d, choices_json_path)
-    cond_log('\nThese are the popular choices for the current active proposals:\n')
-    cond_log(out_d)
-
+    cond_log('\nCreated a choices.json with metadata on active proposals.\n')
 
 
 
