@@ -440,7 +440,8 @@ def quadratic_voting_get_most_popular(single_vote_dict, all_poss_choices):
     Intended to be an quick approximation of a quadratic vote.
     Returns None  if all possible choices voted equal.
     '''
-    votes_d = single_vote_dict['choice']
+
+    votes_d = single_vote_dict   # catch error with some quadratic voting
     votes_set = {v for v in votes_d.values()}
 
     # return None if equal vote for all choices
@@ -519,10 +520,11 @@ def get_prop_data(proposal):
         for vote in votes_list:
 
             # Case: Someone voted for an unavailable choice
-            if vote['choice'] not in choices_d:
-                outsider = vote['choice']
-                cond_log(f'Oops, caught an outsider. Choice: {outsider}')
-                continue
+            if type(vote['choice']) == int:   # catch quadratic voting error
+                if vote['choice'] not in choices_d:  # catch outsider vote
+                    outsider = vote['choice']
+                    cond_log(f'Oops, caught an outsider. Choice: {outsider}')
+                    continue
 
             # case: Quadratic voting
             if type(vote['choice']) == dict:
