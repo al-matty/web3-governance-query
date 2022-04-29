@@ -501,6 +501,11 @@ def get_prop_data(proposal):
     ts_created = meta_data['proposal']['start']
     vote_count = len(votes_list)
     possible_choices = meta_data['proposal']['choices']
+    weighted_vote = False
+
+    # set flag for quadratic voting according to data
+    if type(votes_list[0]['choice']) != int:
+        weighted_vote = True
 
     # transfer choices to int dictionary keys
     choices_d = {}
@@ -520,7 +525,7 @@ def get_prop_data(proposal):
         for vote in votes_list:
 
             # Case: Someone voted for an unavailable choice
-            if type(vote['choice']) == int:   # catch quadratic voting error
+            if not weighted_vote:     # catch quadratic voting error
                 if vote['choice'] not in choices_d:  # catch outsider vote
                     outsider = vote['choice']
                     cond_log(f'Oops, caught an outsider. Choice: {outsider}')
@@ -546,7 +551,8 @@ def get_prop_data(proposal):
             'title': title,
             'pop_choice': most_popular,
             'ts_created': ts_created,
-            'total_votes': vote_count
+            'total_votes': vote_count,
+            'weighted_vote': weighted_vote
         }
     }
 
@@ -580,45 +586,3 @@ def create_choices_json(export_json_path, choices_json_path):
     # save to json
     write_to_json(out_d, choices_json_path)
     cond_log('\nCreated a choices.json with metadata on active proposals.\n')
-
-
-
-#########################################################################
-#########################################################################
-
-#from web3.auto.infura import w3
-#eth = w3.eth
-
-
-def vote_yes(wallet, space):
-    '''
-    Logs into a snapshot space with wallet,
-    votes for whichever button contains a "Yes".
-    '''
-    # connect wallet with snapshot.page
-
-    # return set of joined spaces with active proposals to vote on
-    active = get_not_yet_voted(wallet)
-
-    # for each active space: vote yes
-
-    # disconnect wallet from snapshot.page
-    pass
-
-
-def vote_all_with_wallet(wallet):
-    '''
-    Iterates through spaces this wallet has joined,
-    checks which have active proposals,
-    votes for whichever button contains a "Yes" on those.
-    '''
-    active = get_active_spaces(wallet)
-
-    # Pass if no proposals currently for this wallet's joined spaces
-    if active == {}:
-        cond_log(f'No active proposals atm for wallet {wallet}!')
-        return None
-
-    else:
-        for space in active:
-            vote_yes(wallet, space)
