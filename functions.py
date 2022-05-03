@@ -586,3 +586,7 @@ def create_choices_json(export_json_path, choices_json_path):
     # save to json
     write_to_json(out_d, choices_json_path)
     cond_log('\nCreated a choices.json with metadata on active proposals.\n')
+
+
+def filter_out_bot_catcher_proposals(choices_json_path, export_json_path):
+    pass
