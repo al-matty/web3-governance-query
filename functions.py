@@ -4,7 +4,7 @@
 All functions are stored here
 """
 
-import os, json, requests, keyring, csv
+import os, json, requests, keyring, csv, random
 from time import sleep
 
 
@@ -250,6 +250,24 @@ def remove_voted_on(wallet, proposals, already_voted_dict):
 
 
 
+def add_diversity(prop_dict, probability=0.3):
+    '''
+    Takes a dict of shape {key1: list, key2: list,..}.
+    Removes a random element from each list with a {probability}
+    and returns resulting dict and a dict of what's been removed.
+    '''
+    d = prop_dict
+    out_d = d.copy()
+    removed = {}
+
+    for k,v in d.items():
+        if random.random() <= probability and v != []:
+            choice = random.choice(v)
+            v.remove(choice)
+            out_d[k] = v
+            removed[k] = choice
+
+    return out_d, removed
 
 
 def get_not_yet_voted(wallet, spaces, already_voted_dict, silent=False):
@@ -266,6 +284,9 @@ def get_not_yet_voted(wallet, spaces, already_voted_dict, silent=False):
                               )
     # subtract proposals from ignore list
     to_vote = to_vote - set(IGNORE_LIST)
+
+    # randomly remove proposals from addresses to add variety between wallets
+
 
     if not silent and to_vote != set():
         cond_log(f'\n===> Found new proposals for {wallet}:\n')
@@ -286,9 +307,6 @@ def get_pk(encr_pk_path, keyr_service_name, keyr_account):
     decr_pw = None
     return pk
 
-
-def connect_web3(url, pk):
-    pass
 
 
 def get_choices(proposal_id):
@@ -316,7 +334,6 @@ def get_choices(proposal_id):
     return d['data']['proposal']['choices']
 
 
-
 def export_to_vote(wallet_path, already_voted_path, export_path, export=True):
     '''
     Wrapper for core functionality. Queries graphql.
@@ -336,6 +353,16 @@ def export_to_vote(wallet_path, already_voted_path, export_path, export=True):
     for wallet in wallets:
         spaces = get_joined_spaces(wallet)
         d[wallet] = list(get_not_yet_voted(wallet, spaces, already_voted_dict))
+
+    #randomly discard some proposals per wallet to add variety btw wallets
+    d, removed = add_diversity(d, probability=0.3)
+    if removed != {}:
+        cond_log('\nRandomly removed these proposals for diversity:')
+        [cond_log(x) for x in set(removed.values())]
+        cond_log('\nWallets affected:')
+        [cond_log(x) for x in removed.keys()]
+    else:
+        cond_log('\nNo random removal of proposals for diversity this time!\n')
 
     if export:
         write_to_json(d, export_path)
