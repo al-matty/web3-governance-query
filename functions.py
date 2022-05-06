@@ -357,10 +357,11 @@ def export_to_vote(wallet_path, already_voted_path, export_path, export=True):
     #randomly discard some proposals per wallet to add variety btw wallets
     d, removed = add_diversity(d, probability=0.3)
     if removed != {}:
-        cond_log('\nRandomly removed these proposals for diversity:')
-        [cond_log(x) for x in set(removed.values())]
-        cond_log('\nWallets affected:')
-        [cond_log(x) for x in removed.keys()]
+        cond_log('\nRandomly removed these proposals for diversity\n:')
+        for wallet, prop in removed.items():
+            title = get_prop_data(prop)[prop]['title']
+            cond_log(f'{wallet}:')
+            cond_log(f'\t{title}\n')
     else:
         cond_log('\nNo random removal of proposals for diversity this time!\n')
 
