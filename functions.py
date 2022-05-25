@@ -526,7 +526,7 @@ def get_prop_data(proposal):
     vote_count = len(votes_list)
     possible_choices = meta_data['proposal']['choices']
     _type = meta_data['proposal']['type']
-    space = meta_data['proposal']['space']['name']
+    space = meta_data['proposal']['space']['id']
     weighted_vote = False
 
     # set flag for quadratic voting according to data
@@ -600,6 +600,14 @@ def create_choices_json(export_json_path, choices_json_path):
     if to_vote_d == {}:
         return
 
+    # create empty dict with same structure as to_vote_d
+    out_d = {}
+    for wallet, prop_list in to_vote_d.items():
+        out_d[wallet] = {}
+        for prop in prop_list:
+            out_d[wallet][prop] = {}
+
+
     # populate set of unique proposals
     props = set()
     for wallet, prop_list in to_vote_d.items():
@@ -612,12 +620,13 @@ def create_choices_json(export_json_path, choices_json_path):
         prop_data_d[prop] = get_prop_data(prop)[prop]
 
     # add metadata for each proposal for each wallet (structure as in to_vote)
-    for wallet in to_vote_d.copy():
-        for prop in wallet:
-            to_vote_d[wallet][prop] = prop_data_d[prop]
+    for wallet, props in to_vote_d.items():
+        for prop in props:
+            out_d[wallet][prop] = prop_data_d[prop]
+
 
     # save to json
-    write_to_json(to_vote_d, choices_json_path)
+    write_to_json(out_d, choices_json_path)
     cond_log('\nCreated a choices.json with metadata on active proposals.\n')
 
 

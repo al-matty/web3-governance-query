@@ -30,12 +30,3 @@ create_choices_json(export_json_path, choices_json_path)
 # create csv file with names of snapshot spaces resolved (optional)
 sleep(1)
 export_readable_csv(export_json_path, export_csv_path)
-
-
-'''
-TODO:
-Write filter_out_bot_catcher_proposals()
--based on keywords in title and content, i.e. ['bot', 'human']
--additionally based on suspiciously few votes after 24 hours
- compared to an avg number for the protocol
-'''
