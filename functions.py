@@ -232,8 +232,6 @@ def get_active_proposals(spaces_set, silent=False):
     return active_props
 
 
-
-
 def remove_voted_on(wallet, proposals, already_voted_dict):
     '''
     Takes a set of proposals. Returns subset of those proposals that
@@ -247,7 +245,6 @@ def remove_voted_on(wallet, proposals, already_voted_dict):
         removed = set(proposals) - already_voted
 
     return removed
-
 
 
 def add_diversity(prop_dict, probability=0.3):
@@ -306,7 +303,6 @@ def get_pk(encr_pk_path, keyr_service_name, keyr_account):
 
     decr_pw = None
     return pk
-
 
 
 def get_choices(proposal_id):
@@ -481,7 +477,6 @@ def quadratic_voting_get_most_popular(single_vote_dict, all_poss_choices):
         return int(max(votes_d.items(), key=lambda x: x[1])[0])
 
 
-
 def get_prop_data(proposal):
     '''
     Queries graphql and returns the most popular choice at this moment
@@ -517,6 +512,7 @@ def get_prop_data(proposal):
             snapshot
             state
             author
+            type
             space {
               id
               name
@@ -529,6 +525,8 @@ def get_prop_data(proposal):
     ts_created = meta_data['proposal']['start']
     vote_count = len(votes_list)
     possible_choices = meta_data['proposal']['choices']
+    _type = meta_data['proposal']['type']
+    space = meta_data['proposal']['space']['name']
     weighted_vote = False
 
     # set flag for quadratic voting according to data
@@ -580,7 +578,9 @@ def get_prop_data(proposal):
             'pop_choice': most_popular,
             'ts_created': ts_created,
             'total_votes': vote_count,
-            'weighted_vote': weighted_vote
+            'weighted_vote': weighted_vote,
+            'type': _type,
+            'space': space
         }
     }
 
@@ -606,13 +606,18 @@ def create_choices_json(export_json_path, choices_json_path):
         for prop in prop_list:
             props.add(prop)
 
-    # create dict of proposals and their most popular choice so far
-    out_d = {}
+    # create dict of proposals and their queried metadata
+    prop_data_d = {}
     for prop in props:
-        out_d[prop] = get_prop_data(prop)[prop]
+        prop_data_d[prop] = get_prop_data(prop)[prop]
+
+    # add metadata for each proposal for each wallet (structure as in to_vote)
+    for wallet in to_vote_d.copy():
+        for prop in wallet:
+            to_vote_d[wallet][prop] = prop_data_d[prop]
 
     # save to json
-    write_to_json(out_d, choices_json_path)
+    write_to_json(to_vote_d, choices_json_path)
     cond_log('\nCreated a choices.json with metadata on active proposals.\n')
 
 
