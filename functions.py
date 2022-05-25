@@ -528,6 +528,7 @@ def get_prop_data(proposal):
     _type = meta_data['proposal']['type']
     space = meta_data['proposal']['space']['id']
     weighted_vote = False
+    _id = meta_data['proposal']['id']
 
     # set flag for quadratic voting according to data
     if type(votes_list[0]['choice']) != int:
@@ -580,7 +581,8 @@ def get_prop_data(proposal):
             'total_votes': vote_count,
             'weighted_vote': weighted_vote,
             'type': _type,
-            'space': space
+            'space': space,
+            'id': _id
         }
     }
 
