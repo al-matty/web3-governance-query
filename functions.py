@@ -531,8 +531,9 @@ def get_prop_data(proposal):
     _id = meta_data['proposal']['id']
 
     # set flag for quadratic voting according to data
-    if type(votes_list[0]['choice']) != int:
+    if votes_list != [] and type(votes_list[0]['choice']) != int:
         weighted_vote = True
+
 
     # transfer choices to int dictionary keys
     choices_d = {}
