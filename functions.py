@@ -87,6 +87,7 @@ def set_already_voted_dict(already_voted_path, wallet_path):
         data = set_already_voted_dict(already_voted_path, wallet_path)
         return data
 
+
 def write_to_json(_dict, path):
     '''
     Writes dict of shape {wallet1: {prop_id_1, prop_id_2,...}, wallet2: ...}
@@ -623,14 +624,43 @@ def create_choices_json(export_json_path, choices_json_path):
     cond_log('\nCreated a choices.json with metadata on active proposals.\n')
 
 
-def filter_out_bot_catcher_proposals(choices_json_path, export_json_path):
+def filter_out_bot_catcher_proposals(choices_json_path, triggers):
     '''
-    Removes any proposal containing the word bot or sybil in title.
+    Removes any proposal containing the word bot, human, or sybil in title.
     '''
-    return
-    read_from_json()
-    # do logic
-    write_to_json()
+    choices = read_from_json(choices_json_path)
+    props = {}
+
+    # populate dict of unique proposals
+    for prop_list in choices.values():
+        if prop_list == {}:
+            continue
+        for _id, data in prop_list.items():
+            props[_id] = data
+
+    # remove any proposal containing a word from trigger list
+    outfile = deepcopy(choices)
+    removed = {}
+
+    for wallet, prop_list in choices.items():
+        if prop_list == {}:
+            continue
+        else:
+            for _id, data in prop_list.items():
+                title = data['title']
+                print(title)
+                if any(ele in title for ele in triggers):
+                    del outfile[wallet][_id]
+                    removed[_id] = data
+
+
+    # update json file
+    write_to_json(outfile, choices_json_path)
+    if removed != {}:
+        print('\nRemoved these proposals because of a trigger word caught in the proposal title:')
+        print_dict = {x['id']: x['title'] for x in removed.values()}
+        prettyprint(print_dict, keys_label='Proposal', values_label='Title')
+        print('')
 
 
 def filter_out_low_engagement_props(choices_json_path):
@@ -666,7 +696,7 @@ def filter_out_low_engagement_props(choices_json_path):
 
     for wallet, prop_list in choices.items():
         if prop_list == {}:
-            outfile[wallet] = prop_list
+            continue
         else:
             for _id, data in prop_list.items():
                 votes = data['total_votes']
@@ -676,10 +706,13 @@ def filter_out_low_engagement_props(choices_json_path):
                     removed[_id] = data
 
     # update json file
-    write_to_json(outfile, './choicesTEST.json')#choices_json_path)
-    print('\nRemoved these proposals because less than 30% of the usual voters have voted so far:')
-    print_dict = {x['title']: x['total_votes'] for x in removed.values()}
-    prettyprint(print_dict, keys_label='Proposal', values_label='Votes so far')
+    write_to_json(outfile, choices_json_path)
+    if removed != {}:
+        print('\nRemoved these proposals because less than 30% of the usual voters have voted so far:')
+        print_dict = {x['title']: x['total_votes'] for x in removed.values()}
+        prettyprint(print_dict, keys_label='Proposal', values_label='Votes so far')
+        print('')
+
 
 def get_avg_n_votes(space_ens, n=2):
     '''
@@ -694,6 +727,7 @@ def get_avg_n_votes(space_ens, n=2):
     vote_counts = [get_n_votes(prop) for prop in recent_props]
     avg = sum(vote_counts)/n
     return avg
+
 
 def get_n_votes(proposal):
     '''
@@ -725,6 +759,7 @@ def get_n_votes(proposal):
     }'''
     votes = json_from_query(query)
     return len(votes['data']['votes'])
+
 
 def get_recent_closed_proposals(space_ens, n=2):
     '''
@@ -758,11 +793,9 @@ def get_recent_closed_proposals(space_ens, n=2):
     props = [x['id'] for x in result['data']['proposals']]
     return props
 
+
 def prettyprint(dict_, keys_label='keys', values_label='values'):
     print('\n{:^35} | {:^6}'.format(keys_label, values_label))
     print('-'*65)
     for k,v in dict_.items():
         print("{:35} | {:<20}".format(k[:35],v))
-
-
-# TODO: remove hard treshold from get_prop_data function (no more choice: None)
