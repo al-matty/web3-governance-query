@@ -6,6 +6,7 @@ All functions are stored here
 
 import os, json, requests, keyring, csv, random
 from time import sleep
+from copy import deepcopy
 
 
 logging = True        # toggles verbosity (False = no messages at all)
@@ -540,39 +541,30 @@ def get_prop_data(proposal):
     for i in range(len(possible_choices)):
         choices_d[i+1] = 0
 
+    # Sum up count of each choice and determine most popular one
+    for vote in votes_list:
 
-    # case: Less than 50 votes in total: Return None
-    if vote_count < 50:
-        most_popular = None
-        print(f'Very few votes so far ({vote_count}) for this proposal: ', title)
+        # Case: Someone voted for an unavailable choice
+        if not weighted_vote:     # catch quadratic voting error
+            if vote['choice'] not in choices_d:  # catch outsider vote
+                outsider = vote['choice']
+                cond_log(f'Oops, caught an outsider. Choice: {outsider}')
+                continue
 
-    # case: More than 100 votes: Count them to get most popular choice so far
-    else:
-
-        # sum up count of each choice and determine most common
-        for vote in votes_list:
-
-            # Case: Someone voted for an unavailable choice
-            if not weighted_vote:     # catch quadratic voting error
-                if vote['choice'] not in choices_d:  # catch outsider vote
-                    outsider = vote['choice']
-                    cond_log(f'Oops, caught an outsider. Choice: {outsider}')
-                    continue
-
-            # case: Quadratic voting
-            if type(vote['choice']) == dict:
-                highest_v = quadratic_voting_get_most_popular(vote['choice'], choices_d)
-                if highest_v == None:
-                    continue
-                else:
-                    choices_d[highest_v] += 1
-
-            # case: Single choice voting
+        # case: Quadratic voting
+        if type(vote['choice']) == dict:
+            highest_v = quadratic_voting_get_most_popular(vote['choice'], choices_d)
+            if highest_v == None:
+                continue
             else:
-                choices_d[vote['choice']] += 1
+                choices_d[highest_v] += 1
 
-        # Determine most voted choice so far
-        most_popular = max(choices_d.items(), key=lambda x: x[1])[0]
+        # case: Single choice voting
+        else:
+            choices_d[vote['choice']] += 1
+
+    # Determine most voted choice so far
+    most_popular = max(choices_d.items(), key=lambda x: x[1])[0]
 
     out_d = {
         proposal: {
@@ -610,7 +602,6 @@ def create_choices_json(export_json_path, choices_json_path):
         for prop in prop_list:
             out_d[wallet][prop] = {}
 
-
     # populate set of unique proposals
     props = set()
     for wallet, prop_list in to_vote_d.items():
@@ -626,7 +617,6 @@ def create_choices_json(export_json_path, choices_json_path):
     for wallet, props in to_vote_d.items():
         for prop in props:
             out_d[wallet][prop] = prop_data_d[prop]
-
 
     # save to json
     write_to_json(out_d, choices_json_path)
@@ -645,12 +635,51 @@ def filter_out_bot_catcher_proposals(choices_json_path, export_json_path):
 
 def filter_out_low_engagement_props(choices_json_path):
     '''
-    Removes any proposal where less than 25% of usual voters have voted.
+    Reads in choices.json.
+    Removes any proposal where less than 30% of usual voters have voted.
+    Saves choices.json with those proposals removed.
     '''
     choices = read_from_json(choices_json_path)
-    # do logic
-    #write_to_json()
-    return choices
+    spaces_votes = {}
+    props = {}
+
+    # populate dict of unique proposals
+    for prop_list in choices.values():
+        if prop_list == {}:
+            continue
+        for _id, data in prop_list.items():
+            props[_id] = data
+
+    # read avg past votes from memo dict or alternatively query graphql
+    for prop in props.copy():
+        space = props[prop]['space']
+        if space in spaces_votes:
+            props[prop]['avg_votes'] = spaces_votes[space]
+        else:
+            avg_votes = get_avg_n_votes(space)
+            spaces_votes[space] = avg_votes
+            props[prop]['avg_votes'] = avg_votes
+
+    # remove any proposal with less than 30% of the usual engagement
+    outfile = deepcopy(choices)
+    removed = {}
+
+    for wallet, prop_list in choices.items():
+        if prop_list == {}:
+            outfile[wallet] = prop_list
+        else:
+            for _id, data in prop_list.items():
+                votes = data['total_votes']
+                avg = props[_id]['avg_votes']
+                if (votes/avg) < (3/10):
+                    del outfile[wallet][_id]
+                    removed[_id] = data
+
+    # update json file
+    write_to_json(outfile, './choicesTEST.json')#choices_json_path)
+    print('\nRemoved these proposals because less than 30% of the usual voters have voted so far:')
+    print_dict = {x['title']: x['total_votes'] for x in removed.values()}
+    prettyprint(print_dict, keys_label='Proposal', values_label='Votes so far')
 
 def get_avg_n_votes(space_ens, n=2):
     '''
@@ -729,7 +758,11 @@ def get_recent_closed_proposals(space_ens, n=2):
     props = [x['id'] for x in result['data']['proposals']]
     return props
 
+def prettyprint(dict_, keys_label='keys', values_label='values'):
+    print('\n{:^35} | {:^6}'.format(keys_label, values_label))
+    print('-'*65)
+    for k,v in dict_.items():
+        print("{:35} | {:<20}".format(k[:35],v))
 
-# TODO: implement helper functions.
-# TODO: combine to achieve new features.
+
 # TODO: remove hard treshold from get_prop_data function (no more choice: None)
