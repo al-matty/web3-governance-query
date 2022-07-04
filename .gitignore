@@ -7,3 +7,4 @@ wallets.txt
 *.ipynb
 *.DS_Store
 __pycache__/
+walletsTest.txt

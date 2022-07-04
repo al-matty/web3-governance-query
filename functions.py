@@ -634,4 +634,102 @@ def create_choices_json(export_json_path, choices_json_path):
 
 
 def filter_out_bot_catcher_proposals(choices_json_path, export_json_path):
-    pass
+    '''
+    Removes any proposal containing the word bot or sybil in title.
+    '''
+    return
+    read_from_json()
+    # do logic
+    write_to_json()
+
+
+def filter_out_low_engagement_props(choices_json_path):
+    '''
+    Removes any proposal where less than 25% of usual voters have voted.
+    '''
+    choices = read_from_json(choices_json_path)
+    # do logic
+    #write_to_json()
+    return choices
+
+def get_avg_n_votes(space_ens, n=2):
+    '''
+    Queries graphql for the 2 most recent closed votes and returns
+    average number of voters out of the 2.
+    '''
+    # Query graphql: get most recent 2 prop ids
+    # for each id: get n_votes
+    # calculate average
+    # return average
+    recent_props = get_recent_closed_proposals(space_ens, n=n)
+    vote_counts = [get_n_votes(prop) for prop in recent_props]
+    avg = sum(vote_counts)/n
+    return avg
+
+def get_n_votes(proposal):
+    '''
+    Queries snapshot, returns True if wallet has voted on proposal already,
+    returns False if not.
+    '''
+
+    query = '''query Votes {
+        votes (
+            first: 5000
+            skip: 0
+            where: {
+              proposal: "'''+str(proposal)+'''"
+            }
+        orderBy: "created",
+        orderDirection: desc
+        ) {
+        id
+        voter
+        created
+        proposal {
+          id
+        }
+        choice
+        space {
+          id
+        }
+        }
+    }'''
+    votes = json_from_query(query)
+    return len(votes['data']['votes'])
+
+def get_recent_closed_proposals(space_ens, n=2):
+    '''
+    Returns the most recent n closed proposal ids for a given space.
+    '''
+    n = str(n)
+    space_ens = '"'+space_ens+'"'
+
+    # Get all active proposals for these spaces
+    query_active = '''query Proposals {
+        proposals (
+            first: '''+n+''',
+            skip: 0,
+            where: {
+              space_in: '''+space_ens+''',
+              state: "closed"
+            },
+            orderBy: "created",
+            orderDirection: desc
+        ) {
+            id
+            space {
+              id
+              name
+            }
+          }
+    }'''
+    result = json_from_query(query_active)
+
+    # Create set of all active proposal id's of those spaces
+    props = [x['id'] for x in result['data']['proposals']]
+    return props
+
+
+# TODO: implement helper functions.
+# TODO: combine to achieve new features.
+# TODO: remove hard treshold from get_prop_data function (no more choice: None)
