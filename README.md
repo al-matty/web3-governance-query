@@ -29,7 +29,8 @@ with each wallet, join each snapshot space that you want updates on manually.
 This needs to be done one time only.
 Run the script.
 
-A json and a csv file will be created in your project folder:
+A json and a csv file will be created in your project folder. Also, using the choices.json
+file, you can vote with the repo [snapshot-vote](https://github.com/al-matty/snapshot-vote).
 
 ### csv example:
 
