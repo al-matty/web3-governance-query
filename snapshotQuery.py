@@ -27,10 +27,13 @@ create_choices_json(export_json_path, choices_json_path)
 sleep(1)
 filter_out_low_engagement_props(choices_json_path)
 
-#filter_out_bot_catcher_proposals(choices_json_path, export_json_path)
+# filter_out_bot_catcher_proposals(choices_json_path, export_json_path)
 sleep(1)
 triggers = ['bot', 'sybil', 'human', 'Do not vote', 'Don\'t vote']
 filter_out_bot_catcher_proposals(choices_json_path, triggers)
+
+# change choice values to work with weighted votes
+enable_weighted_vote(choices_json_path)
 
 # create csv file with names of snapshot spaces resolved (optional)
 sleep(1)

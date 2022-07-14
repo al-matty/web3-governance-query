@@ -662,6 +662,34 @@ def filter_out_bot_catcher_proposals(choices_json_path, triggers):
         prettyprint(print_dict, keys_label='Proposal', values_label='Title')
         print('')
 
+def enable_weighted_vote(choices_json_path):
+    '''
+    Corrects the popular choice to be in a dictionary format.
+    '''
+    choices = read_from_json(choices_json_path)
+    outfile = deepcopy(choices)
+
+    # replace single choice with dictionary
+    for wallet, prop_list in choices.items():
+        if prop_list == {}:
+            continue
+        else:
+            for _id, data in prop_list.items():
+                if data['weighted_vote'] == True:
+                    choice_int = data['pop_choice']
+                    choice_dict = '{"' + str(choice_int) + '":1}'
+                    #choice_dict = {str(choice_int): 1}
+                    print('\nChanged a choice to be compatible with the weighted vote...')
+                    print('ID:', _id)
+                    print('Title:', data['title'])
+                    print('Old choice:', choice_int, 'New choice:', choice_dict)
+                    print(outfile[wallet][data]['pop_choice'])
+                    print(type(outfile[wallet][data]['pop_choice']))
+                    outfile[wallet][data]['pop_choice'] = choice_dict
+
+    # update json file
+    write_to_json(outfile, choices_json_path)
+
 
 def filter_out_low_engagement_props(choices_json_path):
     '''
