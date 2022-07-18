@@ -30,7 +30,9 @@ This needs to be done one time only.
 Run the script.
 
 A json and a csv file will be created in your project folder. Also, using the choices.json
-file, you can vote with the repo [snapshot-vote](https://github.com/al-matty/snapshot-vote).
+file, you can automate voting based on customizable conditions using the repo [snapshot-vote](https://github.com/al-matty/snapshot-vote)
+for voting and [create_choices_json()](https://github.com/al-matty/snapshot-query/blob/main/functions.py#:~:text=function_name)
+to set the logic which choice will be chosen for voting.
 
 ### csv example:
 
