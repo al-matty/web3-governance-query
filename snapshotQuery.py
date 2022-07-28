@@ -17,7 +17,7 @@ choices_json_path = './choices.json'
 
 
 # run script and export proposals up for voting per wallet
-#export_to_vote(wallet_path, already_voted_path, export_json_path)
+export_to_vote(wallet_path, already_voted_path, export_json_path)
 
 # if there are proposals to vote on, create a json with its most popular choice
 sleep(1)
