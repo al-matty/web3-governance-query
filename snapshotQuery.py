@@ -25,7 +25,7 @@ create_choices_json(export_json_path, choices_json_path)
 
 # filter out proposals with much less engagement than usual
 sleep(1)
-filter_out_low_engagement_props(choices_json_path)
+#filter_out_low_engagement_props(choices_json_path)
 
 # filter_out_bot_catcher_proposals(choices_json_path, export_json_path)
 sleep(1)

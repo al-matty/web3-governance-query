@@ -546,7 +546,7 @@ def get_prop_data(proposal):
     for vote in votes_list:
 
         # Case: Someone voted for an unavailable choice
-        if not weighted_vote:     # catch quadratic voting error
+        if not weighted_vote and _type != 'ranked-choice':     # catch quadratic voting error
             if vote['choice'] not in choices_d:  # catch outsider vote
                 outsider = vote['choice']
                 cond_log(f'Oops, caught an outsider. Choice: {outsider}')
@@ -560,12 +560,30 @@ def get_prop_data(proposal):
             else:
                 choices_d[highest_v] += 1
 
-        # case: Single choice voting
+        # case: Ranked choice voting
+        if _type == 'ranked-choice':
+            weighted_vote = False
+            print('Got a ranked choice!')
+            choices_list = vote['choice']
+            random.shuffle(choices_list)
+            d_keys = [k-1 for k in list(choices_d.keys())]
+            choices_d = {}
+            for k, v in zip(d_keys, choices_list):
+                choices_d[k] = v
+
+            print("choices_d", choices_d)
+            print('proposal:', proposal, title, space, _type)
+            print("type(vote['choice']", type(vote['choice']))
+            print("vote['choice']", vote['choice'])
+
         else:
             choices_d[vote['choice']] += 1
 
-    # Determine most voted choice so far
-    most_popular = max(choices_d.items(), key=lambda x: x[1])[0]
+    # Determine most voted choice so far / or set voting dict
+    if _type == 'ranked-choice':
+        most_popular = choices_d
+    else:
+        most_popular = max(choices_d.items(), key=lambda x: x[1])[0]
 
     out_d = {
         proposal: {
