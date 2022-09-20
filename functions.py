@@ -566,22 +566,38 @@ def get_prop_data(proposal):
             print('Got a ranked choice!')
             choices_list = vote['choice']
             random.shuffle(choices_list)
-            d_keys = [k-1 for k in list(choices_d.keys())]
+            d_keys = [int(k)-1 for k in list(choices_d.keys())]
             choices_d = {}
             for k, v in zip(d_keys, choices_list):
-                choices_d[k] = v
+                choices_d[str(k)] = v
 
             print("choices_d", choices_d)
             print('proposal:', proposal, title, space, _type)
             print("type(vote['choice']", type(vote['choice']))
             print("vote['choice']", vote['choice'])
 
+        # case: Voting type: approval -> ignore choices_d / count outside of loop
+        if _type == 'approval':
+            pass
+
         else:
-            choices_d[vote['choice']] += 1
+            try:
+                choices_d[vote['choice']] += 1
+            except TypeError:
+                print('AAAAAA TypeError: Proposal:', space, title)
+                print('choices_d[vote]', choices_d[vote])
+                print('type(choices_d[vote])', type(choices_d[vote]))
+
 
     # Determine most voted choice so far / or set voting dict
     if _type == 'ranked-choice':
         most_popular = choices_d
+
+    if _type == 'approval':
+        votes_list_unpacked = [str(ele['choice']) for ele in votes_list]
+        occurrence = {k: votes_list_unpacked.count(k) for k in votes_list_unpacked}
+        most_popular = max(occurrence.items(), key=lambda x: x[1])[0]
+
     else:
         most_popular = max(choices_d.items(), key=lambda x: x[1])[0]
 
