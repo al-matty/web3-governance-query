@@ -542,10 +542,10 @@ def get_prop_data(proposal):
     for i in range(len(possible_choices)):
         choices_d[i+1] = 0
 
-    # Sum up count of each choice and determine most popular one
+    # sum up count of each choice and determine most popular one
     for vote in votes_list:
 
-        # Case: Someone voted for an unavailable choice
+        # case: Someone voted for an unavailable choice
         if not weighted_vote and _type != 'ranked-choice':     # catch quadratic voting error
             if vote['choice'] not in choices_d:  # catch outsider vote
                 outsider = vote['choice']
@@ -588,15 +588,16 @@ def get_prop_data(proposal):
                 print('choices_d[vote]', choices_d[vote])
                 print('type(choices_d[vote])', type(choices_d[vote]))
 
-
-    # Determine most voted choice so far / or set voting dict
+    # determine most voted choice so far / or set voting dict
     if _type == 'ranked-choice':
         most_popular = choices_d
 
     if _type == 'approval':
-        votes_list_unpacked = [str(ele['choice']) for ele in votes_list]
-        occurrence = {k: votes_list_unpacked.count(k) for k in votes_list_unpacked}
-        most_popular = max(occurrence.items(), key=lambda x: x[1])[0]
+        votes_list_unpacked = [ele['choice'] for ele in votes_list]
+        most_popular = sorted(votes_list_unpacked,
+                                key = votes_list_unpacked.count,
+                                reverse = True)[0]
+        most_popular = [str(x) for x in most_popular]
 
     else:
         most_popular = max(choices_d.items(), key=lambda x: x[1])[0]
