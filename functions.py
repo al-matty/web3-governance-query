@@ -553,7 +553,7 @@ def get_prop_data(proposal):
                 continue
 
         # case: Quadratic voting
-        if type(vote['choice']) == dict:
+        elif type(vote['choice']) == dict:
             highest_v = quadratic_voting_get_most_popular(vote['choice'], choices_d)
             if highest_v == None:
                 continue
@@ -561,7 +561,7 @@ def get_prop_data(proposal):
                 choices_d[highest_v] += 1
 
         # case: Ranked choice voting
-        if _type == 'ranked-choice':
+        elif _type == 'ranked-choice':
             weighted_vote = False
             print('Got a ranked choice!')
             choices_list = vote['choice']
@@ -577,7 +577,11 @@ def get_prop_data(proposal):
             print("vote['choice']", vote['choice'])
 
         # case: Voting type: approval -> ignore choices_d / count outside of loop
-        if _type == 'approval':
+        elif _type == 'approval':
+            pass
+
+        # case: Voting type: weighted vote
+        elif _type == 'weighted_vote':
             pass
 
         else:
@@ -592,7 +596,7 @@ def get_prop_data(proposal):
     if _type == 'ranked-choice':
         most_popular = choices_d
 
-    if _type == 'approval':
+    elif _type == 'approval':
         votes_list_unpacked = [ele['choice'] for ele in votes_list]
         most_popular = sorted(votes_list_unpacked,
                                 key = votes_list_unpacked.count,
