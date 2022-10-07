@@ -571,10 +571,10 @@ def get_prop_data(proposal):
             for k, v in zip(d_keys, choices_list):
                 choices_d[str(k)] = v
 
-            print("choices_d", choices_d)
+            print("choices_d:", choices_d)
             print('proposal:', proposal, title, space, _type)
-            print("type(vote['choice']", type(vote['choice']))
-            print("vote['choice']", vote['choice'])
+            print("type(vote['choice']):", type(vote['choice']))
+            print("vote['choice']:", vote['choice'])
 
         # case: Voting type: approval -> ignore choices_d / count outside of loop
         elif _type == 'approval':
@@ -588,7 +588,7 @@ def get_prop_data(proposal):
             try:
                 choices_d[vote['choice']] += 1
             except TypeError:
-                print('AAAAAA TypeError: Proposal:', space, title)
+                print('\n\n======== TypeError ======== Proposal:', space, title)
                 print('choices_d[vote]', choices_d[vote])
                 print('type(choices_d[vote])', type(choices_d[vote]))
 
