@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Written by Al Matty <almatty@gmail.com>
+Written by Al Matty <al@almatty.com>
 """
 
 from functions import *

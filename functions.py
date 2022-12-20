@@ -118,7 +118,10 @@ def json_from_query(query):
     url = 'https://hub.snapshot.org/graphql'
     r = requests.post(url, json={'query': query})
     response_str = r.text
-    return json.loads(response_str)
+    out_json = json.loads(response_str)
+
+    assert 'errors' not in out_json, f"Caught an error: {out_json['errors']}"
+    return out_json
 
 
 def already_voted(wallet, proposal):
@@ -129,7 +132,7 @@ def already_voted(wallet, proposal):
 
     query = '''query Votes {
         votes (
-            first: 3000
+            first: 1000
             skip: 0
             where: {
               proposal: "'''+str(proposal)+'''"
