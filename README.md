@@ -1,5 +1,7 @@
 # Snapshot Query
 
+![GitHub](https://img.shields.io/github/license/al-matty/snapshot-query)
+[![Python 3.6+](https://img.shields.io/badge/python-3.6+-blue.svg)](https://www.python.org/downloads/release/python-390/)
 
 A script to query snapshot.page with multiple Ethereum addresses. It returns 3 files:
 * 'to_vote.json' <- for each address: all active proposal ids that the address hasn't yet voted on
@@ -14,9 +16,9 @@ To filter out some potential noise and avoid blacklisting targeting bots, propos
 
 ## Usage
 
-Specify all the Ethereum addresses you want to get voting information on in './wallets.txt', one address per line. 
+Specify all the Ethereum addresses you want to get voting information on in './wallets.txt', one address per line.
 If you haven't joined any spaces with these wallets on snapshot.page yet, with each wallet, join each snapshot space that you want updates on in the future. This needs to be done one time only. Run [snapshotQuery.py](https://github.com/al-matty/snapshot-query/blob/main/snapshotQuery.py).
-The three mentioned output files will be created in your project folder. 
+The three mentioned output files will be created in your project folder.
 
 Using the 'choices.json' file, you can now automate voting based on customizable conditions using the repo [snapshot-vote](https://github.com/al-matty/snapshot-vote) for voting and [create_choices_json()](https://github.com/al-matty/snapshot-query/blob/main/functions.py#:~:text=function_name)
 to freely customize the logic for voting.

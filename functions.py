@@ -188,10 +188,20 @@ def get_joined_spaces(wallet):
     id_set = set()
     d = json_from_query(query_follows)
 
-    for ele in d['data']['follows']:
-        id_set.add(ele['space']['id'])
+    if "data" in d:
 
-    return id_set
+        for ele in d['data']['follows']:
+            id_set.add(ele['space']['id'])
+
+        return id_set
+
+    else:
+
+        print("="*20,"\n", f"Couldn't get joined spaces for wallet {wallet}!", "="*20,"\n")
+
+        return set()
+
+
 
 
 def get_active_proposals(spaces_set, silent=False):

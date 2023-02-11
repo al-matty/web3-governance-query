@@ -8,3 +8,4 @@ wallets.txt
 *.DS_Store
 __pycache__/
 walletsTest.txt
+test.py
