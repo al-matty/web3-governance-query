@@ -2,6 +2,7 @@
 
 ![GitHub](https://img.shields.io/github/license/al-matty/snapshot-query)
 [![Python 3.6+](https://img.shields.io/badge/python-3.6+-blue.svg)](https://www.python.org/downloads/release/python-390/)
+![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/al-matty/snapshot-query)
 
 A script to query snapshot.page with multiple Ethereum addresses. It returns 3 files:
 * 'to_vote.json' <- for each address: all active proposal ids that the address hasn't yet voted on
