@@ -5,9 +5,10 @@
 ![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/al-matty/snapshot-query)
 
 A script to query snapshot.page with multiple Ethereum addresses. It returns 3 files:
-* 'to_vote.json' <- for each address: all active proposal ids that the address hasn't yet voted on
-* 'to_vote.csv' <- for each address: all snapshot space names with currently active proposals that the address hasn't yet voted on
-* 'choices.json' <- proposal data for all active proposals, usable as voting recipe for the complementary repo [snapshot-vote](https://github.com/al-matty/snapshot-vote)
+
+* `to_vote.json`  for each address: all active proposal ids that the address hasn't yet voted on
+* `to_vote.csv`   for each address: all snapshot space names with currently active proposals that the address hasn't yet voted on
+* `choices.json`  proposal data for all active proposals, usable as voting recipe for the complementary repo [snapshot-vote](https://github.com/al-matty/snapshot-vote)
 
 The json files are meant to be used as potential input for other scripts taking automated actions based on the queried data, while the csv file is meant to be more of an easily verifiable sanity check of the script's general functionality. The script is intended to run as an automated task on a regular basis.
 To filter out some potential noise and avoid blacklisting targeting bots, proposals are ignored if:
